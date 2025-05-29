@@ -3,7 +3,7 @@ const cors = require('cors');
 const { MongoClient } = require('mongodb');
 
 const app = express();
-const port = 5000;
+const port = process.env.PORT || 5000; // ✅ Use Render port
 
 // Middleware
 app.use(cors());
@@ -29,20 +29,23 @@ async function connectDB() {
   }
 }
 
-// POST route to receive form data from After10thPage
+// 🔁 GET route to check API health
+app.get("/", (req, res) => {
+  res.send("🎉 API is working! Express server is live.");
+});
+
+// POST route to receive form data
 app.post('/api/submit_after10th', async (req, res) => {
   try {
     const formData = req.body;
 
-    // Basic validation (optional)
     if (!formData.name || !formData.email || !formData.phone || !formData.location || !formData.interest) {
       return res.status(400).json({ error: "All fields are required." });
     }
 
-    // Insert form data into the collection
     const result = await after10thCollection.insertOne(formData);
-
     res.status(201).json({ message: "Form submitted successfully", id: result.insertedId });
+
   } catch (error) {
     console.error("❌ Error inserting document:", error);
     res.status(500).json({ error: "Server error. Please try again later." });
@@ -52,6 +55,6 @@ app.post('/api/submit_after10th', async (req, res) => {
 // Start server after DB connection
 connectDB().then(() => {
   app.listen(port, () => {
-    console.log(`🚀 Server listening on http://localhost:${port}`);
+    console.log(`🚀 Server listening on port ${port}`);
   });
 });
